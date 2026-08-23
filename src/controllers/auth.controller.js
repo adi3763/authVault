@@ -59,4 +59,26 @@ const getMe = async (req, res) => {
     }
 };
 
-module.exports = { register, login, getMe };
+const refreshAccessToken = async (req, res) => {
+    try {
+        const { refreshToken } = req.body;
+
+        if (!refreshToken) {
+            throw new ApiError(400, "Refresh token is required");
+        }
+
+        const { accessToken, refreshToken: newRefreshToken } = await authService.refreshAccessToken({ refreshToken });
+
+        return res.status(200).json({
+            message: "Tokens refreshed successfully",
+            accessToken,
+            refreshToken: newRefreshToken,
+        });
+    } catch (err) {
+        const statusCode = err instanceof ApiError ? err.statusCode : 500;
+        const message = err instanceof ApiError ? err.message : "Internal server error";
+        return res.status(statusCode).json({ error: message });
+    }
+};
+
+module.exports = { register, login, getMe, refreshAccessToken };
