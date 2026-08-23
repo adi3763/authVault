@@ -38,6 +38,17 @@ const revokeAllUserTokens = async (userId) => {
     await RefreshToken.deleteMany({ userId });
 };
 
+// Delete a single refresh token (used on logout)
+const revokeRefreshToken = async (rawToken) => {
+    const hashedToken = hashToken(rawToken);
+
+    const result = await RefreshToken.deleteOne({ token: hashedToken });
+
+    if (result.deletedCount === 0) {
+        throw new ApiError(403, "Invalid refresh token");
+    }
+};
+
 // Rotate: validate old token, mark used, issue new pair
 const rotateRefreshToken = async (rawToken) => {
     const hashedToken = hashToken(rawToken);
@@ -73,5 +84,6 @@ module.exports = {
     generateAccessToken,
     generateRefreshToken,
     revokeAllUserTokens,
+    revokeRefreshToken,
     rotateRefreshToken,
 };

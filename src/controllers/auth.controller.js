@@ -81,4 +81,24 @@ const refreshAccessToken = async (req, res) => {
     }
 };
 
-module.exports = { register, login, getMe, refreshAccessToken };
+const logout = async (req, res) => {
+    try {
+        const { refreshToken } = req.body;
+
+        if (!refreshToken) {
+            throw new ApiError(400, "Refresh token is required");
+        }
+
+        await authService.logoutUser({ refreshToken });
+
+        return res.status(200).json({
+            message: "User logged out successfully",
+        });
+    } catch (err) {
+        const statusCode = err instanceof ApiError ? err.statusCode : 500;
+        const message = err instanceof ApiError ? err.message : "Internal server error";
+        return res.status(statusCode).json({ error: message });
+    }
+};
+
+module.exports = { register, login, getMe, refreshAccessToken, logout };

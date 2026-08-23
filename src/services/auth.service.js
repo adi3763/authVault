@@ -1,7 +1,7 @@
 const User = require("../models/User.model");
 const ApiError = require("../utils/ApiError");
 const bcrypt = require("bcrypt");
-const { generateAccessToken, generateRefreshToken, rotateRefreshToken } = require("../services/token.service");
+const { generateAccessToken, generateRefreshToken, rotateRefreshToken, revokeRefreshToken } = require("../services/token.service");
 
 const registerUser = async ({ name, email, password }) => {
     const isEmailExist = await User.findOne({ email });
@@ -46,4 +46,8 @@ const refreshAccessToken = async ({ refreshToken }) => {
     return await rotateRefreshToken(refreshToken);
 };
 
-module.exports = { registerUser, loginUser, refreshAccessToken };
+const logoutUser = async ({ refreshToken }) => {
+    await revokeRefreshToken(refreshToken);
+};
+
+module.exports = { registerUser, loginUser, refreshAccessToken, logoutUser };
