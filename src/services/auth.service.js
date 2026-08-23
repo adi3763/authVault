@@ -21,32 +21,25 @@ const registerUser = async ({ name, email, password }) => {
 };
 
 const loginUser = async ({ email, password }) => {
-
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select('+hashedPassword');
 
     if (!user) {
-        throw new ApiError(404, "User not found");
+        throw new ApiError(401, "Invalid credentials");
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.hashedPassword);
 
     if (!isPasswordValid) {
-        throw new ApiError(401, "Inavlid Password");
+        throw new ApiError(401, "Invalid credentials");
     }
 
     const userObj = user.toObject();
     delete userObj.hashedPassword;
 
     const accessToken = generateAccessToken(user._id);
-    const refreshToken = generateRefreshToken(user._id);
+    const refreshToken = await generateRefreshToken(user._id);
 
-    return {
-        userObj,
-        accessToken,
-        refreshToken
-    }
-
-
-}
+    return { user: userObj, accessToken, refreshToken };
+};
 
 module.exports = { registerUser, loginUser };

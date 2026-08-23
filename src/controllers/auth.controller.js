@@ -1,5 +1,6 @@
 const authService = require("../services/auth.service");
 const ApiError = require("../utils/ApiError");
+const User = require("../models/User.model");
 
 const register = async (req, res) => {
     try {
@@ -30,13 +31,29 @@ const login = async (req, res) => {
             throw new ApiError(400, "All fields are required");
         }
 
-        const user = await authService.loginUser({ email, password });
+        const { user, accessToken, refreshToken } = await authService.loginUser({ email, password });
 
         return res.status(200).json({
             message: "User logged in successfully",
-            user
+            user,
+            accessToken,
+            refreshToken,
         });
+    } catch (err) {
+        const statusCode = err instanceof ApiError ? err.statusCode : 500;
+        const message = err instanceof ApiError ? err.message : "Internal server error";
+        return res.status(statusCode).json({ error: message });
+    }
+};
 
+const getMe = async (req, res) => {
+    try {
+        const user = req.user.userId;
+        const userData = await User.findById(user).select("-hashedPassword");
+        return res.status(200).json({
+            message: "User data fetched successfully",
+            user: userData
+        });
     } catch (err) {
         const statusCode = err instanceof ApiError ? err.statusCode : 500;
         const message = err instanceof ApiError ? err.message : "Internal server error";
@@ -44,4 +61,4 @@ const login = async (req, res) => {
     }
 }
 
-module.exports = { register, login };
+module.exports = { register, login, getMe };
