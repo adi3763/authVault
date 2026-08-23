@@ -1,19 +1,47 @@
 const authService = require("../services/auth.service");
-const User = require("../models/User.model");
+const ApiError = require("../utils/ApiError");
 
 const register = async (req, res) => {
-    const { name, email, password } = req.body;
+    try {
+        const { name, email, password } = req.body;
 
-    if (!name || !email || !password) {
-        throw new Error("All fields are required");
+        if (!name || !email || !password) {
+            throw new ApiError(400, "All fields are required");
+        }
+
+        const user = await authService.registerUser({ name, email, password });
+
+        return res.status(201).json({
+            message: "User registered successfully",
+            user
+        });
+    } catch (err) {
+        const statusCode = err instanceof ApiError ? err.statusCode : 500;
+        const message = err instanceof ApiError ? err.message : "Internal server error";
+        return res.status(statusCode).json({ error: message });
     }
+};
 
-    const user = await authService.registerUser(name, email, password);
+const login = async (req, res) => {
+    try {
+        const { email, password } = req.body;
 
-    return res.status(201).json({
-        message: "User registered successfully",
-        user
-    })
+        if (!email || !password) {
+            throw new ApiError(400, "All fields are required");
+        }
+
+        const user = await authService.loginUser({ email, password });
+
+        return res.status(200).json({
+            message: "User logged in successfully",
+            user
+        });
+
+    } catch (err) {
+        const statusCode = err instanceof ApiError ? err.statusCode : 500;
+        const message = err instanceof ApiError ? err.message : "Internal server error";
+        return res.status(statusCode).json({ error: message });
+    }
 }
 
-module.exports = { register }
+module.exports = { register, login };
