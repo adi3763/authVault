@@ -48,17 +48,15 @@ const login = async (req, res) => {
 
 const getMe = async (req, res) => {
     try {
-        const user = req.user.userId;
-        const userData = await User.findById(user).select("-hashedPassword");
         return res.status(200).json({
             message: "User data fetched successfully",
-            user: userData
+            user: req.user
         });
     } catch (err) {
         const statusCode = err instanceof ApiError ? err.statusCode : 500;
         const message = err instanceof ApiError ? err.message : "Internal server error";
         return res.status(statusCode).json({ error: message });
     }
-}
+};
 
 module.exports = { register, login, getMe };
