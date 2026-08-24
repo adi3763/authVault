@@ -3,6 +3,7 @@ const crypto = require("crypto");
 const ms = require("ms");
 const RefreshToken = require("../models/RefreshToken.model");
 const ApiError = require("../utils/ApiError");
+const PasswordResetToken = require("../models/PasswordResetToken.model");
 
 const {
     ACCESS_TOKEN_SECRET,
@@ -80,10 +81,25 @@ const rotateRefreshToken = async (rawToken) => {
     return { accessToken, refreshToken };
 };
 
+const generatePasswordResetToken = async (userId) => {
+    await PasswordResetToken.deleteMany({ userId, isUsed: false });
+
+    const randomToken = crypto.randomBytes(32).toString('hex');
+    const hasedToken = hashToken(randomToken);
+
+    await PasswordResetToken.create({
+        token: hasedToken,
+        userId,
+        expiresAt: new Date(Date.now() + ms("15M")),
+    })
+
+    return randomToken;
+}
+
 module.exports = {
     generateAccessToken,
     generateRefreshToken,
     revokeAllUserTokens,
     revokeRefreshToken,
     rotateRefreshToken,
-};
+};

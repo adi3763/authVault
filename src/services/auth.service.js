@@ -50,4 +50,18 @@ const logoutUser = async ({ refreshToken }) => {
     await revokeRefreshToken(refreshToken);
 };
 
+const forgotPassword = async ({ email }) => {
+    const user = await User.findOne({ email });
+
+    if (!user) {
+        return;
+    }
+
+    const rawToken = await generatePasswordResetToken(user._id);
+
+    console.log(`Password reset link: http://localhost:3000/reset-password?token=${rawToken}`);
+
+
+}
+
 module.exports = { registerUser, loginUser, refreshAccessToken, logoutUser };

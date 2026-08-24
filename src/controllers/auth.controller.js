@@ -101,4 +101,24 @@ const logout = async (req, res) => {
     }
 };
 
+const forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            throw new ApiError(400, "Email is required")
+        }
+
+        await authService.forgotPassword({ email });
+
+        return res.status(200).json({
+            message: "Password reset link sent successfully",
+        });
+    } catch (err) {
+        const statusCode = err instanceof ApiError ? err.statusCode : 500;
+        const message = err instanceof ApiError ? err.message : "Internal server error";
+        return res.status(statusCode).json({ error: message });
+    }
+}
+
 module.exports = { register, login, getMe, refreshAccessToken, logout };
