@@ -96,10 +96,36 @@ const generatePasswordResetToken = async (userId) => {
     return randomToken;
 }
 
+// Verify a raw password reset token, mark it used, and return the owning userId
+const verifyPasswordResetToken = async (rawToken) => {
+    const hashedToken = hashToken(rawToken);
+
+    const storedToken = await PasswordResetToken.findOne({ token: hashedToken });
+
+    if (!storedToken) {
+        throw new ApiError(400, "Invalid or expired reset token");
+    }
+
+    if (storedToken.expiresAt < new Date()) {
+        throw new ApiError(400, "Invalid or expired reset token");
+    }
+
+    if (storedToken.isUsed) {
+        throw new ApiError(400, "Invalid or expired reset token");
+    }
+
+    storedToken.isUsed = true;
+    await storedToken.save();
+
+    return storedToken.userId;
+};
+
 module.exports = {
     generateAccessToken,
     generateRefreshToken,
     revokeAllUserTokens,
     revokeRefreshToken,
     rotateRefreshToken,
+    generatePasswordResetToken,
+    verifyPasswordResetToken,
 };

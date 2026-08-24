@@ -121,4 +121,24 @@ const forgotPassword = async (req, res) => {
     }
 }
 
-module.exports = { register, login, getMe, refreshAccessToken, logout };
+const resetPassword = async (req, res) => {
+    try {
+        const { token, newPassword } = req.body;
+
+        if (!token || !newPassword) {
+            throw new ApiError(400, "Token and new password are required");
+        }
+
+        await authService.resetPassword({ token, newPassword });
+
+        return res.status(200).json({
+            message: "Password reset successfully",
+        });
+    } catch (err) {
+        const statusCode = err instanceof ApiError ? err.statusCode : 500;
+        const message = err instanceof ApiError ? err.message : "Internal server error";
+        return res.status(statusCode).json({ error: message });
+    }
+};
+
+module.exports = { register, login, getMe, refreshAccessToken, logout, forgotPassword, resetPassword };

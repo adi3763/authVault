@@ -1,7 +1,7 @@
 const User = require("../models/User.model");
 const ApiError = require("../utils/ApiError");
 const bcrypt = require("bcrypt");
-const { generateAccessToken, generateRefreshToken, rotateRefreshToken, revokeRefreshToken } = require("../services/token.service");
+const { generateAccessToken, generateRefreshToken, rotateRefreshToken, revokeRefreshToken, revokeAllUserTokens, generatePasswordResetToken, verifyPasswordResetToken } = require("../services/token.service");
 
 const registerUser = async ({ name, email, password }) => {
     const isEmailExist = await User.findOne({ email });
@@ -60,8 +60,16 @@ const forgotPassword = async ({ email }) => {
     const rawToken = await generatePasswordResetToken(user._id);
 
     console.log(`Password reset link: http://localhost:3000/reset-password?token=${rawToken}`);
-
-
 }
 
-module.exports = { registerUser, loginUser, refreshAccessToken, logoutUser };
+const resetPassword = async ({ token, newPassword }) => {
+    const userId = await verifyPasswordResetToken(token);
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await User.findByIdAndUpdate(userId, { hashedPassword });
+
+    await revokeAllUserTokens(userId);
+};
+
+module.exports = { registerUser, loginUser, refreshAccessToken, logoutUser, forgotPassword, resetPassword };
