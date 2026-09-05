@@ -36,7 +36,7 @@ const loginUser = async ({ email, password }) => {
     const userObj = user.toObject();
     delete userObj.hashedPassword;
 
-    const accessToken = generateAccessToken(user._id);
+    const accessToken = generateAccessToken(user._id, user.role);
     const refreshToken = await generateRefreshToken(user._id);
 
     return { user: userObj, accessToken, refreshToken };

@@ -16,18 +16,19 @@ const hashToken = (rawToken) => {
     return crypto.createHash("sha256").update(rawToken).digest("hex");
 };
 
-const generateAccessToken = (userId) => {
-    const payload = { userId };
+const generateAccessToken = (userId, role) => {
+    const payload = { userId, role };
     return jwt.sign(payload, ACCESS_TOKEN_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRY });
 };
 
-const generateRefreshToken = async (userId) => {
+const generateRefreshToken = async (userId, role) => {
     const randomToken = crypto.randomBytes(32).toString("hex");
     const hashedToken = hashToken(randomToken); // reuse helper
 
     await RefreshToken.create({
         token: hashedToken,
         userId,
+        role,
         expiresAt: new Date(Date.now() + ms(REFRESH_TOKEN_EXPIRY)),
     });
 
