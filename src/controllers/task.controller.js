@@ -28,12 +28,15 @@ const updateTask = async (req, res) => {
         const { taskId } = req.params;
         const { title, description, status } = req.body;
 
+        const updates = {};
+        if (title !== undefined) updates.title = title;
+        if (description !== undefined) updates.description = description;
+        if (status !== undefined) updates.status = status;
+
         const task = await taskService.updateTask({
             taskId,
-            title,
-            description,
-            status,
             requestingUserId: req.user._id,
+            updates,
             requestingUserRole: req.user.role,
         });
 
@@ -46,6 +49,6 @@ const updateTask = async (req, res) => {
         const message = err instanceof ApiError ? err.message : "Internal server error";
         return res.status(statusCode).json({ error: message });
     }
-}
+};
 
-module.exports = { createTask };
+module.exports = { createTask, updateTask };

@@ -41,7 +41,7 @@ const authorize = (...allowedRoles) => {
     return (req, res, next) => {
         if (!req.user || !allowedRoles.includes(req.user.role)) {
             console.warn('AUTHZ_DENIED', {
-                userId: req.user?.userId,
+                userId: req.user?._id,
                 role: req.user?.role,
                 requiredRoles: allowedRoles,
                 route: req.originalUrl,

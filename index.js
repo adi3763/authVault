@@ -5,6 +5,7 @@ const cors = require('cors');
 const dbConnect = require('./src/db/index');
 const authRouter = require('./src/routes/auth.routes');
 const taskRouter = require('./src/routes/task.routes');
+const userRouter = require('./src/routes/user.routes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -18,6 +19,7 @@ app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 
 app.use("/api/v1", authRouter);
 app.use("/api/v1", taskRouter);
+app.use("/api/v1", userRouter);
 
 app.get('/health', (req, res) => {
     res.json({ status: 'ok' });
