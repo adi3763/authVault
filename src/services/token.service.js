@@ -4,6 +4,7 @@ const ms = require("ms");
 const RefreshToken = require("../models/RefreshToken.model");
 const ApiError = require("../utils/ApiError");
 const PasswordResetToken = require("../models/PasswordResetToken.model");
+const User = require("../models/User.model");
 
 const {
     ACCESS_TOKEN_SECRET,
@@ -66,7 +67,6 @@ const rotateRefreshToken = async (rawToken) => {
     }
 
     if (storedToken.isUsed) {
-        // Token reuse detected → possible theft → revoke entire family
         await revokeAllUserTokens(storedToken.userId);
         throw new ApiError(403, "Refresh token reuse detected. Please login again.");
     }
@@ -75,9 +75,15 @@ const rotateRefreshToken = async (rawToken) => {
     storedToken.isUsed = true;
     await storedToken.save();
 
-    // Issue new token pair
-    const accessToken = generateAccessToken(storedToken.userId);
-    const refreshToken = await generateRefreshToken(storedToken.userId);
+    // Ab tak pata chal chuka hai token valid hai — ab fresh role fetch karo
+    const user = await User.findById(storedToken.userId).select("role");
+    if (!user) {
+        throw new ApiError(403, "User no longer exists");
+    }
+
+    // Issue new token pair — fresh DB role ke saath
+    const accessToken = generateAccessToken(storedToken.userId, user.role);
+    const refreshToken = await generateRefreshToken(storedToken.userId, user.role);
 
     return { accessToken, refreshToken };
 };
